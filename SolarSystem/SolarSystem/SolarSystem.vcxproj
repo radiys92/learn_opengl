@@ -119,8 +119,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Rendering\Material.cpp" />
     <ClCompile Include="Rendering\Mesh.cpp" />
     <ClCompile Include="Rendering\Shader.cpp" />
+    <ClCompile Include="Rendering\Texture2D.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Rendering\Rendering.h" />

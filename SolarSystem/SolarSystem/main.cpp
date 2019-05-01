@@ -7,15 +7,17 @@
 
 #include "Rendering/Rendering.h"
 
-Shader* shader;
+Material Material1;
 std::vector<Mesh> Figures;
 
 void PrepareEnv()
 {
-	shader = new Shader("vertex.shader", "fragment.shader");
+	Material1.LoadShader("Resources/vertex.shader", "Resources/fragment.shader");
+	Material1.LoadTexture2D("Resources/tileable-grass_clover_TT7010116-dark2.png", "mainTex");
+	Material1.LoadTexture2D("Resources/tileable-grass_clover_TT7010116_nm.png", "normal");
 
 	Mesh quad = Mesh(GL_STATIC_DRAW, 4);
-	quad.AddVertexAttribute(
+	quad.AddVertexAttribute( // positions
 		std::vector<GLfloat>
 	{
 		0.5f, 0.5f, 0.0f,
@@ -24,7 +26,7 @@ void PrepareEnv()
 		0.0f, 0.5f, 0.0f
 	},
 		3, 0);
-	quad.AddVertexAttribute(
+	quad.AddVertexAttribute( // colors
 		std::vector<GLfloat>
 	{
 		1, 0, 0,
@@ -33,6 +35,15 @@ void PrepareEnv()
 		1, 1, 1
 	}, 
 		3, 1);
+	quad.AddVertexAttribute( // texcoords
+		std::vector<GLfloat>
+	{
+		1.0f, 1.0f,
+		1.0f, 0.0f,
+		0.0f, 0.0f,
+		0.0f, 1.0f,
+	},
+		2, 2);
 	quad.SetIndicesBuffer(
 		std::vector<GLuint>
 	{
@@ -66,7 +77,7 @@ void Draw()
 {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	shader->Use();
+	Material1.Use();
 
 	for (int i = 0; i < Figures.size(); i++)
 	{
@@ -74,6 +85,8 @@ void Draw()
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 	}
+
+	Material1.Unbind();
 }
 
 int main()

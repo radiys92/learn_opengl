@@ -3,17 +3,6 @@
 #include <GL/glew.h>;
 #include <vector>
 
-class Shader
-{
-public:
-	Shader(const GLchar* vertexPath, const GLchar* fragmentPath);
-
-	void Use();
-
-private:
-	GLuint shaderProgram;
-};
-
 typedef struct
 {
 	GLuint PerVertexCount;
@@ -42,21 +31,41 @@ private:
 	void ReinitVertexArray();
 };
 
-//class Texture
-//{
-//public:
-//	Texture();
-//
-//	void LoadFrom(const GLchar* texturePath);
-//	int GetWidth();
-//	int GetHeight();
-//};
-//
-//
-//class Material
-//{
-//public:
-//	Material(const GLchar* vertexPath, const GLchar* fragmentPath);
-//
-//	void Use();
-//};
+class Texture2D
+{
+public:
+	Texture2D(const GLchar* uniformName, int textureIndex);
+	void LoadFrom(const GLchar* texturePath);
+	void BindTo(GLuint program);
+	void Unbind();
+
+private:
+	const GLchar* uniformName;
+	int textureIndex;
+	GLuint textureId;
+};
+
+class Shader
+{
+public:
+	Shader(const GLchar* vertexPath, const GLchar* fragmentPath);
+	GLuint GetProgramId();
+
+	void Use();
+private:
+	GLuint shaderProgram;
+};
+
+class Material
+{
+public:
+	void LoadShader(const GLchar* vertexPath, const GLchar* fragmentPath);
+	void LoadTexture2D(const GLchar* texturePath, const GLchar* uniformName);
+
+	void Use();
+	void Unbind();
+
+private:
+	Shader* shader;
+	std::vector<Texture2D> textures;
+};
