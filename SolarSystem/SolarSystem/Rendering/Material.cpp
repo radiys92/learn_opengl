@@ -29,3 +29,9 @@ void Material::Unbind()
 	}
 	glUseProgram(0);
 }
+
+Shader* Material::GetShader()
+{
+	return  shader;
+}
+

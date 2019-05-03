@@ -65,6 +65,11 @@ void Mesh::SetIndicesBuffer(std::vector<GLuint> value)
 //	ReinitVertexArray();
 }
 
+GLsizei Mesh::GetIndicesCount()
+{
+	return indices.size();
+}
+
 void Mesh::BindVertexArray()
 {
 	if (vao == 0)
@@ -91,7 +96,7 @@ void Mesh::ReinitVertexArray()
 		}
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLfloat), &indices[0], usage);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), &indices[0], usage);
 	}
 	else if (ebo != 0)
 	{

@@ -5,10 +5,104 @@
 #include <ostream>
 #include <iostream>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "Rendering/Rendering.h"
 
 Material Material1;
 std::vector<Mesh> Figures;
+
+Mesh GenerateIdentitySphere(int segments = 10)
+{
+	float M_PI = 3.1415f;
+	uint32_t verticesCount = 2;
+	int parallels = segments, meridians = segments;
+	std::vector<GLfloat> vertices;
+	std::vector<GLfloat> colors;
+	vertices.push_back(0.0f);
+	vertices.push_back(1.0f);
+	vertices.push_back(0.0f);
+	colors.push_back(1);
+	colors.push_back(0);
+	colors.push_back(0);
+	for (uint32_t j = 0; j < parallels - 1; ++j)
+	{
+		GLfloat polar = M_PI * GLfloat(j + 1) / GLfloat(parallels);
+		GLfloat sp = std::sin(polar);
+		GLfloat cp = std::cos(polar);
+		for (uint32_t i = 0; i < meridians; ++i)
+		{
+			GLfloat azimuth = 2.0 * M_PI * GLfloat(i) / GLfloat(meridians);
+			GLfloat sa = std::sin(azimuth);
+			GLfloat ca = std::cos(azimuth);
+			GLfloat x = sp * ca;
+			GLfloat y = cp;
+			GLfloat z = sp * sa;
+			vertices.push_back(x);
+			vertices.push_back(y);
+			vertices.push_back(z);
+			verticesCount++;
+
+			colors.push_back(0);
+			colors.push_back(1);
+			colors.push_back(0);
+		}
+	}
+	vertices.push_back(0.0f);
+	vertices.push_back(-1.0f);
+	vertices.push_back(0.0f);
+
+	colors.push_back(0);
+	colors.push_back(0);
+	colors.push_back(1);
+
+	std::vector<GLuint> indices;
+	for (uint32_t i = 0; i < meridians; ++i)
+	{
+		GLuint a = i + 1;
+		GLuint b = (i + 1) % meridians + 1;
+		indices.push_back(0);
+		indices.push_back(b);
+		indices.push_back(a);
+	}
+
+	for (uint32_t j = 0; j < parallels - 2; ++j)
+	{
+		GLuint aStart = j * meridians + 1;
+		GLuint bStart = (j + 1) * meridians + 1;
+		for (uint32_t i = 0; i < meridians; ++i)
+		{
+			GLuint a = aStart + i;
+			GLuint a1 = aStart + (i + 1) % meridians;
+			GLuint b = bStart + i;
+			GLuint b1 = bStart + (i + 1) % meridians;
+			indices.push_back(a);
+			indices.push_back(a1);
+			indices.push_back(b1);
+			indices.push_back(a);
+			indices.push_back(b1);
+			indices.push_back(b);
+		}
+	}
+
+	for (uint32_t i = 0; i < meridians; ++i)
+	{
+		uint32_t const a = i + meridians * (parallels - 2) + 1;
+		uint32_t const b = (i + 1) % meridians + meridians * (parallels - 2) + 1;
+		indices.push_back(verticesCount - 1);
+		indices.push_back(a);
+		indices.push_back(b);
+	}
+
+
+	Mesh sphere(GL_STATIC_DRAW, verticesCount);
+	sphere.AddVertexAttribute(vertices, 3, 0);
+	sphere.AddVertexAttribute(colors, 3, 1);
+	sphere.SetIndicesBuffer(indices);
+	return sphere;
+}
 
 void PrepareEnv()
 {
@@ -16,77 +110,61 @@ void PrepareEnv()
 	Material1.LoadTexture2D("Resources/tileable-grass_clover_TT7010116-dark2.png", "mainTex");
 	Material1.LoadTexture2D("Resources/tileable-grass_clover_TT7010116_nm.png", "normal");
 
-	Mesh quad = Mesh(GL_STATIC_DRAW, 4);
-	quad.AddVertexAttribute( // positions
-		std::vector<GLfloat>
-	{
-		0.5f, 0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-		0.0f, -0.5f, 0.0f,
-		0.0f, 0.5f, 0.0f
-	},
-		3, 0);
-	quad.AddVertexAttribute( // colors
-		std::vector<GLfloat>
-	{
-		1, 0, 0,
-		0, 1, 0,
-		0, 0, 1,
-		1, 1, 1
-	}, 
-		3, 1);
-	quad.AddVertexAttribute( // texcoords
-		std::vector<GLfloat>
-	{
-		1.0f, 1.0f,
-		1.0f, 0.0f,
-		0.0f, 0.0f,
-		0.0f, 1.0f,
-	},
-		2, 2);
-	quad.SetIndicesBuffer(
-		std::vector<GLuint>
-	{
-		0, 1, 3,
-		1, 2, 3
-	});
-	Figures.push_back(quad);
+	Mesh sphere = GenerateIdentitySphere(10);
+	Figures.push_back(sphere);
 
-	Mesh redTriangle = Mesh(GL_STATIC_DRAW, 3);
-	redTriangle.AddVertexAttribute(
-		std::vector<GLfloat>
-	{
-		-0.5f, 0.0f, 0.0f,
-		-0.5f, 0.5f, 0.0f,
-		0.0f, 0.0f, 0.0f
-	}, 
-		3, 0);
-	redTriangle.AddVertexAttribute(
-		std::vector<GLfloat>
-	{
-		0.7f, 0.0f, 0.0f,
-		0.5f, 0.0f, 0.0f,
-		0.3f, 0.0f, 0.0f
-	},
-		3, 1);
-	redTriangle.SetIndicesBuffer(std::vector<GLuint> {0,1,2});
-	Figures.push_back(redTriangle);
+	glEnable(GL_DEPTH_TEST);
 }
 
 void Draw()
 {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+//	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+//	glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+//	glPointSize(5);
 
 	Material1.Use();
+
+	glm::mat4 model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(0.5f, -0.5f, 0));
+	model = glm::rotate(model, glm::radians(60.0f), glm::vec3(0.1, 0.1, 0.0));
+	model = glm::rotate(model, (GLfloat)glfwGetTime() * glm::radians(10.0f), glm::vec3(0.0, 1.0, 0.0));
+	model = glm::scale(model, glm::vec3(3.0f, 3.0f, 3.0f));
+
+	glm::mat4 view = glm::mat4(1.0f);
+	view = glm::translate(view, glm::vec3(0, 0, -10));
+	view = glm::rotate(view, glm::radians(15.0f), glm::vec3(1, 0, 0));
+
+	glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 30.0f);
+
+	glm::mat4 mvp = projection * view * model;
+
+	GLuint program = Material1.GetShader()->GetProgramId();
+	GLuint uniformLoc = glGetUniformLocation(program, "MVP_Matrix");
+	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+
 
 	for (int i = 0; i < Figures.size(); i++)
 	{
 		Figures[i].BindVertexArray(); 
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, Figures[i].GetIndicesCount(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 	}
 
 	Material1.Unbind();
+}
+
+void GLAPIENTRY
+MessageCallback(GLenum source,
+	GLenum type,
+	GLuint id,
+	GLenum severity,
+	GLsizei length,
+	const GLchar* message,
+	const void* userParam)
+{
+	std::cout << "GL CALLBACK: " << (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "") <<
+		" type = " << type << ", severity = " << severity << ", message = " << message << "\n";
 }
 
 int main()
@@ -119,6 +197,9 @@ int main()
 
 	glViewport(0, 0, width, height);
 
+	glEnable(GL_DEBUG_OUTPUT);
+	glDebugMessageCallback(MessageCallback, 0);
+
 	PrepareEnv();
 
 	while (!glfwWindowShouldClose(window))
@@ -126,7 +207,7 @@ int main()
 		glfwPollEvents();
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		Draw();
 		

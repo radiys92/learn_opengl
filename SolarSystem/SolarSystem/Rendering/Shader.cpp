@@ -8,7 +8,7 @@ const GLchar* ReadAllText(const GLchar* filePath)
 	std::ifstream ifs(filePath);
 	std::string content((std::istreambuf_iterator<char>(ifs)),
 		(std::istreambuf_iterator<char>()));
-	std::cout << "Readed shader:\n" << content.c_str() << std::endl;
+	std::cout << "Read shader " << filePath << " - OK (size " << content.length() << ")" << std::endl;
 	char* res = new char[content.size() + 1];
 	memcpy(res, content.c_str(), content.size());
 	res[content.size()] = '\0';

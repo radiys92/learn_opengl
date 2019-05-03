@@ -16,6 +16,7 @@ public:
 	void BindVertexArray();
 	void AddVertexAttribute(std::vector<GLfloat> attribute, int perVertexCount, int attributePointer);
 	void SetIndicesBuffer(std::vector<GLuint> indices);
+	GLsizei GetIndicesCount();
 
 private:
 	GLenum usage;
@@ -64,6 +65,7 @@ public:
 
 	void Use();
 	void Unbind();
+	Shader* GetShader();
 
 private:
 	Shader* shader;

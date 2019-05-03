@@ -9,5 +9,5 @@ uniform sampler2D normal;
 
 void main()
 {
-    color = VertexColor * texture(mainTex, TexCoord);
+    color = VertexColor ;//* texture(mainTex, TexCoord);
 } 
