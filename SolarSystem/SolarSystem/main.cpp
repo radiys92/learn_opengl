@@ -17,22 +17,17 @@ std::vector<Mesh> Figures;
 Mesh GenerateIdentitySphere(int segments = 10)
 {
 	float M_PI = 3.1415f;
-	uint32_t verticesCount = 2;
+	uint32_t verticesCount = 0;
 	int parallels = segments, meridians = segments;
 	std::vector<GLfloat> vertices;
-	std::vector<GLfloat> colors;
-	vertices.push_back(0.0f);
-	vertices.push_back(1.0f);
-	vertices.push_back(0.0f);
-	colors.push_back(1);
-	colors.push_back(0);
-	colors.push_back(0);
-	for (uint32_t j = 0; j < parallels - 1; ++j)
+//	std::vector<GLfloat> colors;
+	std::vector<GLfloat> uvs;
+	for (uint32_t j = 0; j < parallels+1; ++j)
 	{
-		GLfloat polar = M_PI * GLfloat(j + 1) / GLfloat(parallels);
+		GLfloat polar = M_PI * GLfloat(j) / GLfloat(parallels);
 		GLfloat sp = std::sin(polar);
 		GLfloat cp = std::cos(polar);
-		for (uint32_t i = 0; i < meridians; ++i)
+		for (uint32_t i = 0; i < meridians + 1; ++i)
 		{
 			GLfloat azimuth = 2.0 * M_PI * GLfloat(i) / GLfloat(meridians);
 			GLfloat sa = std::sin(azimuth);
@@ -43,41 +38,29 @@ Mesh GenerateIdentitySphere(int segments = 10)
 			vertices.push_back(x);
 			vertices.push_back(y);
 			vertices.push_back(z);
+			GLfloat u = static_cast<GLfloat>(j) / (parallels - 1);
+			GLfloat v = static_cast<GLfloat>(i) / meridians;
+			uvs.push_back(v);
+			uvs.push_back(u);
 			verticesCount++;
 
-			colors.push_back(0);
-			colors.push_back(1);
-			colors.push_back(0);
+//			colors.push_back(0);
+//			colors.push_back(1);
+//			colors.push_back(0);
 		}
 	}
-	vertices.push_back(0.0f);
-	vertices.push_back(-1.0f);
-	vertices.push_back(0.0f);
-
-	colors.push_back(0);
-	colors.push_back(0);
-	colors.push_back(1);
 
 	std::vector<GLuint> indices;
-	for (uint32_t i = 0; i < meridians; ++i)
-	{
-		GLuint a = i + 1;
-		GLuint b = (i + 1) % meridians + 1;
-		indices.push_back(0);
-		indices.push_back(b);
-		indices.push_back(a);
-	}
-
-	for (uint32_t j = 0; j < parallels - 2; ++j)
+	for (uint32_t j = 0; j < parallels; ++j)
 	{
 		GLuint aStart = j * meridians + 1;
 		GLuint bStart = (j + 1) * meridians + 1;
 		for (uint32_t i = 0; i < meridians; ++i)
 		{
 			GLuint a = aStart + i;
-			GLuint a1 = aStart + (i + 1) % meridians;
+			GLuint a1 = aStart + (i + 1) % (meridians+1);
 			GLuint b = bStart + i;
-			GLuint b1 = bStart + (i + 1) % meridians;
+			GLuint b1 = bStart + (i + 1) % (meridians+1);
 			indices.push_back(a);
 			indices.push_back(a1);
 			indices.push_back(b1);
@@ -99,7 +82,8 @@ Mesh GenerateIdentitySphere(int segments = 10)
 
 	Mesh sphere(GL_STATIC_DRAW, verticesCount);
 	sphere.AddVertexAttribute(vertices, 3, 0);
-	sphere.AddVertexAttribute(colors, 3, 1);
+//	sphere.AddVertexAttribute(colors, 3, 1);
+	sphere.AddVertexAttribute(uvs, 2, 2);
 	sphere.SetIndicesBuffer(indices);
 	return sphere;
 }
@@ -107,10 +91,11 @@ Mesh GenerateIdentitySphere(int segments = 10)
 void PrepareEnv()
 {
 	Material1.LoadShader("Resources/vertex.shader", "Resources/fragment.shader");
-	Material1.LoadTexture2D("Resources/tileable-grass_clover_TT7010116-dark2.png", "mainTex");
-	Material1.LoadTexture2D("Resources/tileable-grass_clover_TT7010116_nm.png", "normal");
+	Material1.LoadTexture2D("Resources/Earth_Alb.png", "mainTex");
+	Material1.LoadTexture2D("Resources/Earth Clouds.png", "cloudsTex");
+//	Material1.LoadTexture2D("Resources/tileable-grass_clover_TT7010116_nm.png", "normal");
 
-	Mesh sphere = GenerateIdentitySphere(10);
+	Mesh sphere = GenerateIdentitySphere(15);
 	Figures.push_back(sphere);
 
 	glEnable(GL_DEPTH_TEST);
@@ -128,7 +113,7 @@ void Draw()
 	glm::mat4 model = glm::mat4(1.0f);
 	model = glm::translate(model, glm::vec3(0.5f, -0.5f, 0));
 	model = glm::rotate(model, glm::radians(60.0f), glm::vec3(0.1, 0.1, 0.0));
-	model = glm::rotate(model, (GLfloat)glfwGetTime() * glm::radians(10.0f), glm::vec3(0.0, 1.0, 0.0));
+	model = glm::rotate(model, (GLfloat)glfwGetTime() * glm::radians(5.0f), glm::vec3(0.0, 1.0, 0.0));
 	model = glm::scale(model, glm::vec3(3.0f, 3.0f, 3.0f));
 
 	glm::mat4 view = glm::mat4(1.0f);
@@ -142,6 +127,8 @@ void Draw()
 	GLuint program = Material1.GetShader()->GetProgramId();
 	GLuint uniformLoc = glGetUniformLocation(program, "MVP_Matrix");
 	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
+
+	glUniform2f(glGetUniformLocation(program, "cloudsShift"), (GLfloat)glfwGetTime() / -150.0f, 0);
 
 
 	for (int i = 0; i < Figures.size(); i++)
@@ -175,7 +162,7 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-	GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(800, 600, "SolarSystem", nullptr, nullptr);
 	if (window == nullptr)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
