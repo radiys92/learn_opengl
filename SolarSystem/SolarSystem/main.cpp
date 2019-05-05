@@ -11,92 +11,15 @@
 
 #include "Rendering/Rendering.h"
 
-Material Material1;
-std::vector<Mesh> Figures;
-
-Mesh GenerateIdentitySphere(int segments = 10)
-{
-	float M_PI = 3.1415f;
-	uint32_t verticesCount = 0;
-	int parallels = segments, meridians = segments;
-	std::vector<GLfloat> vertices;
-//	std::vector<GLfloat> colors;
-	std::vector<GLfloat> uvs;
-	for (uint32_t j = 0; j < parallels+1; ++j)
-	{
-		GLfloat polar = M_PI * GLfloat(j) / GLfloat(parallels);
-		GLfloat sp = std::sin(polar);
-		GLfloat cp = std::cos(polar);
-		for (uint32_t i = 0; i < meridians + 1; ++i)
-		{
-			GLfloat azimuth = 2.0 * M_PI * GLfloat(i) / GLfloat(meridians);
-			GLfloat sa = std::sin(azimuth);
-			GLfloat ca = std::cos(azimuth);
-			GLfloat x = sp * ca;
-			GLfloat y = cp;
-			GLfloat z = sp * sa;
-			vertices.push_back(x);
-			vertices.push_back(y);
-			vertices.push_back(z);
-			GLfloat u = static_cast<GLfloat>(j) / (parallels - 1);
-			GLfloat v = static_cast<GLfloat>(i) / meridians;
-			uvs.push_back(v);
-			uvs.push_back(u);
-			verticesCount++;
-
-//			colors.push_back(0);
-//			colors.push_back(1);
-//			colors.push_back(0);
-		}
-	}
-
-	std::vector<GLuint> indices;
-	for (uint32_t j = 0; j < parallels; ++j)
-	{
-		GLuint aStart = j * meridians + 1;
-		GLuint bStart = (j + 1) * meridians + 1;
-		for (uint32_t i = 0; i < meridians; ++i)
-		{
-			GLuint a = aStart + i;
-			GLuint a1 = aStart + (i + 1) % (meridians+1);
-			GLuint b = bStart + i;
-			GLuint b1 = bStart + (i + 1) % (meridians+1);
-			indices.push_back(a);
-			indices.push_back(a1);
-			indices.push_back(b1);
-			indices.push_back(a);
-			indices.push_back(b1);
-			indices.push_back(b);
-		}
-	}
-
-	for (uint32_t i = 0; i < meridians; ++i)
-	{
-		uint32_t const a = i + meridians * (parallels - 2) + 1;
-		uint32_t const b = (i + 1) % meridians + meridians * (parallels - 2) + 1;
-		indices.push_back(verticesCount - 1);
-		indices.push_back(a);
-		indices.push_back(b);
-	}
-
-
-	Mesh sphere(GL_STATIC_DRAW, verticesCount);
-	sphere.AddVertexAttribute(vertices, 3, 0);
-//	sphere.AddVertexAttribute(colors, 3, 1);
-	sphere.AddVertexAttribute(uvs, 2, 2);
-	sphere.SetIndicesBuffer(indices);
-	return sphere;
-}
+PlanetObject *planet;
 
 void PrepareEnv()
 {
-	Material1.LoadShader("Resources/vertex.shader", "Resources/fragment.shader");
-	Material1.LoadTexture2D("Resources/Earth_Alb.png", "mainTex");
-	Material1.LoadTexture2D("Resources/Earth Clouds.png", "cloudsTex");
-//	Material1.LoadTexture2D("Resources/tileable-grass_clover_TT7010116_nm.png", "normal");
-
-	Mesh sphere = GenerateIdentitySphere(15);
-	Figures.push_back(sphere);
+	planet = new PlanetObject();
+	Transform *t = planet->GetTransform();
+	t->SetPosition(glm::vec3(0.5f, -0.5f, 0));
+	t->SetScale(glm::vec3(3.0f, 3.0f, 3.0f));
+	t->SetRotation(glm::vec3(25, 0, 0));
 
 	glEnable(GL_DEPTH_TEST);
 }
@@ -104,41 +27,19 @@ void PrepareEnv()
 void Draw()
 {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-//	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-//	glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-//	glPointSize(5);
 
-	Material1.Use();
-
-	glm::mat4 model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(0.5f, -0.5f, 0));
-	model = glm::rotate(model, glm::radians(60.0f), glm::vec3(0.1, 0.1, 0.0));
-	model = glm::rotate(model, (GLfloat)glfwGetTime() * glm::radians(5.0f), glm::vec3(0.0, 1.0, 0.0));
-	model = glm::scale(model, glm::vec3(3.0f, 3.0f, 3.0f));
-
-	glm::mat4 view = glm::mat4(1.0f);
-	view = glm::translate(view, glm::vec3(0, 0, -10));
-	view = glm::rotate(view, glm::radians(15.0f), glm::vec3(1, 0, 0));
+	GLfloat radius = 10.0f;
+	GLfloat t = glfwGetTime() / 3 + 3.1415f*2/3;
+	GLfloat camX = sin(t) * radius;
+	GLfloat camZ = cos(t) * radius;
+	glm::mat4 view(1.0f);
+	view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
 
 	glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 30.0f);
 
-	glm::mat4 mvp = projection * view * model;
-
-	GLuint program = Material1.GetShader()->GetProgramId();
-	GLuint uniformLoc = glGetUniformLocation(program, "MVP_Matrix");
-	glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(mvp));
-
-	glUniform2f(glGetUniformLocation(program, "cloudsShift"), (GLfloat)glfwGetTime() / -150.0f, 0);
-
-
-	for (int i = 0; i < Figures.size(); i++)
-	{
-		Figures[i].BindVertexArray(); 
-		glDrawElements(GL_TRIANGLES, Figures[i].GetIndicesCount(), GL_UNSIGNED_INT, 0);
-		glBindVertexArray(0);
-	}
-
-	Material1.Unbind();
+	planet->SetViewMatrix(view);
+	planet->SetProjectionMatrix(projection);
+	planet->Draw();
 }
 
 void GLAPIENTRY

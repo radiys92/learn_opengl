@@ -1,4 +1,5 @@
 ﻿#include "Rendering.h"
+#include <glm/gtc/type_ptr.inl>
 
 void Material::LoadShader(const GLchar* vertexPath, const GLchar* fragmentPath)
 {
@@ -35,3 +36,8 @@ Shader* Material::GetShader()
 	return  shader;
 }
 
+void Material::SetMatrix(const char* uniformName, glm::mat4 mat4)
+{
+	GLuint uniformLocation = glGetUniformLocation(shader->GetProgramId(), uniformName);
+	glUniformMatrix4fv(uniformLocation, 1, GL_FALSE, glm::value_ptr(mat4));
+}

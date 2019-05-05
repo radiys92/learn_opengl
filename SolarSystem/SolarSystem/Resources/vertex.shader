@@ -7,12 +7,15 @@ out vec4 VertexColor;
 out vec2 TexCoord;
 out vec2 CloudsTexCoord;
 
-uniform mat4 MVP_Matrix;
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
+
 uniform vec2 cloudsShift;
 
 void main()
 {
-    gl_Position = MVP_Matrix * vec4(position, 1.0);
+    gl_Position = projection * view * model * vec4(position, 1.0);
     VertexColor = vec4(color, 1.0);
     TexCoord = texCoord;
     CloudsTexCoord = texCoord + cloudsShift;
