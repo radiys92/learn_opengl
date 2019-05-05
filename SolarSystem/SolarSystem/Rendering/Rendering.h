@@ -107,10 +107,12 @@ public:
 
 	void SetMaterial(Material material);
 	void SetMesh(Mesh* mesh);
+	Mesh* GetMesh();
 
 	void SetViewMatrix(glm::mat4 view);
 	void SetProjectionMatrix(glm::mat4 projection);
 	void SetVector(const char* uniformName, GLfloat x, GLfloat y);
+	void SetVector(const char* uniformName, GLfloat x, GLfloat y, GLfloat z);
 
 	virtual void Draw();
 private:
@@ -119,22 +121,63 @@ private:
 	Mesh *mesh;
 };
 
-class PlanetObject : public SceneObject
+class SphereSceneObject : public SceneObject
 {
 public:
-	PlanetObject() : SceneObject(0)
-	{
-		SetMesh(GenerateIdentitySphere(15));
+	SphereSceneObject() : SceneObject(GenerateIdentitySphere(15)) { }
+	SphereSceneObject(Mesh* mesh) : SceneObject(mesh) { }
 
+private:
+	Mesh* GenerateIdentitySphere(int segments);
+};
+
+class SunObject : public SphereSceneObject
+{
+public:
+	SunObject() : SphereSceneObject()
+	{
 		Material mat;
-		mat.LoadShader("Resources/vertex.shader", "Resources/fragment.shader");
+		mat.LoadShader("Resources/default_vertex.shader", "Resources/default_fragment.shader");
+		mat.LoadTexture2D("Resources/Sun_Alb.png", "mainTex");
+		SetMaterial(mat);
+	}
+
+	SunObject(Mesh* mesh) : SphereSceneObject(mesh)
+	{
+		Material mat;
+		mat.LoadShader("Resources/default_vertex.shader", "Resources/default_fragment.shader");
+		mat.LoadTexture2D("Resources/Sun_Alb.png", "mainTex");
+		SetMaterial(mat);
+	}
+
+	glm::vec3 GetLightColor();
+
+private:
+	glm::vec3 lightColor = glm::vec3(1.0f, 0.96f, 0.76f);;
+};
+
+class EarthPlanetObject : public SphereSceneObject
+{
+public:
+	EarthPlanetObject() : SphereSceneObject()
+	{
+		Material mat;
+		mat.LoadShader("Resources/multimaps_vertex.shader", "Resources/multimaps_fragment.shader");
 		mat.LoadTexture2D("Resources/Earth_Alb.png", "mainTex");
 		mat.LoadTexture2D("Resources/Earth Clouds.png", "cloudsTex");
+		mat.LoadTexture2D("Resources/Earth Lights.png", "lightsTex");
+		SetMaterial(mat);
+	}
+
+	EarthPlanetObject(Mesh* mesh) : SphereSceneObject(mesh)
+	{
+		Material mat;
+		mat.LoadShader("Resources/multimaps_vertex.shader", "Resources/multimaps_fragment.shader");
+		mat.LoadTexture2D("Resources/Earth_Alb.png", "mainTex");
+		mat.LoadTexture2D("Resources/Earth Clouds.png", "cloudsTex");
+		mat.LoadTexture2D("Resources/Earth Lights.png", "lightsTex");
 		SetMaterial(mat);
 	}
 
 	void Draw();
-
-private:
-	Mesh* GenerateIdentitySphere(int segments);
 };

@@ -11,24 +11,38 @@
 
 #include "Rendering/Rendering.h"
 
-PlanetObject *planet;
+std::vector<SceneObject*> objects;
+SunObject* Sun;
 
-void PrepareEnv()
+void PrepareScene()
 {
-	planet = new PlanetObject();
-	Transform *t = planet->GetTransform();
-	t->SetPosition(glm::vec3(0.5f, -0.5f, 0));
-	t->SetScale(glm::vec3(3.0f, 3.0f, 3.0f));
+	EarthPlanetObject* earth = new EarthPlanetObject();
+	Transform *t = earth->GetTransform();
+	t->SetPosition(glm::vec3(5.0f, 0, 0));
 	t->SetRotation(glm::vec3(25, 0, 0));
+	t->SetScale(glm::vec3(1.5f, 1.5f, 1.5f));
+	objects.push_back(earth);
+
+	SunObject* sun = new SunObject(earth->GetMesh());
+	t = sun->GetTransform();
+	t->SetScale(glm::vec3(1.5f, 1.5f, 1.5f));
+
+	Sun = sun;
+	glm::vec3 color = sun->GetLightColor();
+	for (SceneObject* object : objects)
+	{
+		object->SetVector("lightColor", color.r, color.g, color.b);
+	}
 
 	glEnable(GL_DEPTH_TEST);
 }
 
 void Draw()
 {
+
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	GLfloat radius = 10.0f;
+	GLfloat radius = 15.0f;
 	GLfloat t = glfwGetTime() / 3 + 3.1415f*2/3;
 	GLfloat camX = sin(t) * radius;
 	GLfloat camZ = cos(t) * radius;
@@ -37,9 +51,19 @@ void Draw()
 
 	glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 30.0f);
 
-	planet->SetViewMatrix(view);
-	planet->SetProjectionMatrix(projection);
-	planet->Draw();
+	Sun->SetViewMatrix(view);
+	Sun->SetProjectionMatrix(projection);
+	Sun->Draw();
+
+	glm::vec3 lightPos = Sun->GetTransform()->GetPosition();
+	for (SceneObject* object : objects)
+	{
+		object->SetViewMatrix(view);
+		object->SetProjectionMatrix(projection);
+		object->SetVector("lightPos", lightPos.x, lightPos.y, lightPos.z);
+		object->SetVector("viewPos", camX, 0, camZ);
+		object->Draw();
+	}
 }
 
 void GLAPIENTRY
@@ -88,7 +112,7 @@ int main()
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(MessageCallback, 0);
 
-	PrepareEnv();
+	PrepareScene();
 
 	while (!glfwWindowShouldClose(window))
 	{

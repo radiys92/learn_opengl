@@ -1,12 +1,13 @@
 ﻿#include "Rendering.h"
 #include <GLFW/glfw3.h>
 
-Mesh* PlanetObject::GenerateIdentitySphere(int segments = 10)
+Mesh* SphereSceneObject::GenerateIdentitySphere(int segments = 10)
 {
 	float M_PI = 3.1415f;
 	uint32_t verticesCount = 0;
 	int parallels = segments, meridians = segments;
 	std::vector<GLfloat> vertices;
+	std::vector<GLfloat> normals;
 	std::vector<GLfloat> uvs;
 	for (uint32_t j = 0; j < parallels + 1; ++j)
 	{
@@ -24,6 +25,10 @@ Mesh* PlanetObject::GenerateIdentitySphere(int segments = 10)
 			vertices.push_back(x);
 			vertices.push_back(y);
 			vertices.push_back(z);
+			glm::vec3 normal = normalize(glm::vec3(x, y, z));
+			normals.push_back(normal.x);
+			normals.push_back(normal.y);
+			normals.push_back(normal.z);
 			GLfloat u = static_cast<GLfloat>(j) / parallels;
 			GLfloat v = static_cast<GLfloat>(i) / meridians;
 			uvs.push_back(v);
@@ -54,13 +59,19 @@ Mesh* PlanetObject::GenerateIdentitySphere(int segments = 10)
 
 	Mesh* sphere = new Mesh(GL_STATIC_DRAW, verticesCount);
 	sphere->AddVertexAttribute(vertices, 3, 0);
-	sphere->AddVertexAttribute(uvs, 2, 2);
+	sphere->AddVertexAttribute(uvs, 2, 1);
+	sphere->AddVertexAttribute(normals, 3, 2);
 	sphere->SetIndicesBuffer(indices);
 	return sphere;
 }
 
-void PlanetObject::Draw()
+void EarthPlanetObject::Draw()
 {
 	this->SetVector("cloudsShift", (GLfloat)glfwGetTime() / -150.0f, 0);
 	SceneObject::Draw();
+}
+
+glm::vec3 SunObject::GetLightColor()
+{
+	return lightColor;
 }

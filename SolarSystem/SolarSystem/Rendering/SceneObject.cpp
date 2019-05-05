@@ -15,6 +15,12 @@ void SceneObject::SetMesh(Mesh* mesh)
 	this->mesh = mesh;
 }
 
+Mesh* SceneObject::GetMesh()
+{
+	return mesh;
+}
+
+
 void SceneObject::SetViewMatrix(glm::mat4 view)
 {
 	material.GetShader()->Use();
@@ -32,6 +38,13 @@ void SceneObject::SetVector(const char* uniformName, GLfloat x, GLfloat y)
 	material.GetShader()->Use();
 	glUniform2f(glGetUniformLocation(material.GetShader()->GetProgramId(), uniformName), x, y);
 }
+
+void SceneObject::SetVector(const char* uniformName, GLfloat x, GLfloat y, GLfloat z)
+{
+	material.GetShader()->Use();
+	glUniform3f(glGetUniformLocation(material.GetShader()->GetProgramId(), uniformName), x, y, z);
+}
+
 
 void SceneObject::Draw()
 {
