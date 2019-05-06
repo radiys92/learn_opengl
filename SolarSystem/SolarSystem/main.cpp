@@ -16,15 +16,27 @@ SunObject* Sun;
 
 void PrepareScene()
 {
-	EarthPlanetObject* earth = new EarthPlanetObject();
-	Transform *t = earth->GetTransform();
-	t->SetPosition(glm::vec3(5.0f, 0, 0));
-	t->SetRotation(glm::vec3(25, 0, 0));
-	t->SetScale(glm::vec3(1.5f, 1.5f, 1.5f));
-	objects.push_back(earth);
+	int count = 5;
+	for (float i = 0; i < glm::pi<float>() * 2; i += glm::pi<float>() * 2 / count)
+	{
+		GLfloat radius = 5.0f;
+		GLfloat x = sin(i) * radius;
+		GLfloat z = cos(i) * radius;
 
-	SunObject* sun = new SunObject(earth->GetMesh());
-	t = sun->GetTransform();
+		EarthPlanetObject* earth;
+		if (objects.size() > 0)
+			earth = new EarthPlanetObject(objects[0]->GetMesh(), objects[0]->GetMaterial());
+		else
+			earth = new EarthPlanetObject();
+		Transform *t = earth->GetTransform();
+		t->SetPosition(glm::vec3(x, 0, z));
+		t->SetRotation(glm::vec3(25, 0, 0));
+		t->SetScale(glm::vec3(1.0f, 1.0f, 1.0f));
+		objects.push_back(earth);
+	}
+
+	SunObject* sun = new SunObject(objects[0]->GetMesh());
+	Transform* t = sun->GetTransform();
 	t->SetScale(glm::vec3(1.5f, 1.5f, 1.5f));
 
 	Sun = sun;

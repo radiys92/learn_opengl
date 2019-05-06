@@ -98,14 +98,14 @@ private:
 class SceneObject
 {
 public:
-	explicit SceneObject(Mesh* mesh)
-		: mesh(mesh)
+	SceneObject(Mesh* mesh, Material* mat)
+		: mesh(mesh), material(mat)
 	{
 	}
 
 	Transform* GetTransform();
 
-	void SetMaterial(Material material);
+	void SetMaterial(Material* material);
 	void SetMesh(Mesh* mesh);
 	Mesh* GetMesh();
 
@@ -115,17 +115,18 @@ public:
 	void SetVector(const char* uniformName, GLfloat x, GLfloat y, GLfloat z);
 
 	virtual void Draw();
+	Material* GetMaterial();
 private:
 	Transform transfom;
-	Material material;
+	Material *material;
 	Mesh *mesh;
 };
 
 class SphereSceneObject : public SceneObject
 {
 public:
-	SphereSceneObject() : SceneObject(GenerateIdentitySphere(15)) { }
-	SphereSceneObject(Mesh* mesh) : SceneObject(mesh) { }
+	SphereSceneObject(Material* mat) : SceneObject(GenerateIdentitySphere(15), mat) { }
+	SphereSceneObject(Mesh* mesh, Material* mat) : SceneObject(mesh, mat) { }
 
 private:
 	Mesh* GenerateIdentitySphere(int segments);
@@ -134,24 +135,18 @@ private:
 class SunObject : public SphereSceneObject
 {
 public:
-	SunObject() : SphereSceneObject()
-	{
-		Material mat;
-		mat.LoadShader("Resources/default_vertex.shader", "Resources/default_fragment.shader");
-		mat.LoadTexture2D("Resources/Sun_Alb.png", "mainTex");
-		SetMaterial(mat);
-	}
-
-	SunObject(Mesh* mesh) : SphereSceneObject(mesh)
-	{
-		Material mat;
-		mat.LoadShader("Resources/default_vertex.shader", "Resources/default_fragment.shader");
-		mat.LoadTexture2D("Resources/Sun_Alb.png", "mainTex");
-		SetMaterial(mat);
-	}
+	SunObject() : SphereSceneObject(GenerateMaterial()) { }
+	SunObject(Mesh* mesh) : SphereSceneObject(mesh, GenerateMaterial()) { }
 
 	glm::vec3 GetLightColor();
 
+	Material* GenerateMaterial()
+	{
+		Material* mat = new Material();
+		mat->LoadShader("Resources/default_vertex.shader", "Resources/default_fragment.shader");
+		mat->LoadTexture2D("Resources/Sun_Alb.png", "mainTex");
+		return mat;
+	}
 private:
 	glm::vec3 lightColor = glm::vec3(1.0f, 0.96f, 0.76f);;
 };
@@ -159,24 +154,17 @@ private:
 class EarthPlanetObject : public SphereSceneObject
 {
 public:
-	EarthPlanetObject() : SphereSceneObject()
-	{
-		Material mat;
-		mat.LoadShader("Resources/multimaps_vertex.shader", "Resources/multimaps_fragment.shader");
-		mat.LoadTexture2D("Resources/Earth_Alb.png", "mainTex");
-		mat.LoadTexture2D("Resources/Earth Clouds.png", "cloudsTex");
-		mat.LoadTexture2D("Resources/Earth Lights.png", "lightsTex");
-		SetMaterial(mat);
-	}
+	EarthPlanetObject() : SphereSceneObject(GenerateMaterial()) { }
+	EarthPlanetObject(Mesh* mesh, Material* mat) : SphereSceneObject(mesh, mat) { }
 
-	EarthPlanetObject(Mesh* mesh) : SphereSceneObject(mesh)
+	Material* GenerateMaterial()
 	{
-		Material mat;
-		mat.LoadShader("Resources/multimaps_vertex.shader", "Resources/multimaps_fragment.shader");
-		mat.LoadTexture2D("Resources/Earth_Alb.png", "mainTex");
-		mat.LoadTexture2D("Resources/Earth Clouds.png", "cloudsTex");
-		mat.LoadTexture2D("Resources/Earth Lights.png", "lightsTex");
-		SetMaterial(mat);
+		Material* mat = new Material();
+		mat->LoadShader("Resources/multimaps_vertex.shader", "Resources/multimaps_fragment.shader");
+		mat->LoadTexture2D("Resources/Earth_Alb.png", "mainTex");
+		mat->LoadTexture2D("Resources/Earth Clouds.png", "cloudsTex");
+		mat->LoadTexture2D("Resources/Earth Lights.png", "lightsTex");
+		return mat;
 	}
 
 	void Draw();
