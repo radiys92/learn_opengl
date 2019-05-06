@@ -121,6 +121,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Rendering\Material.cpp" />
     <ClCompile Include="Rendering\Mesh.cpp" />
+    <ClCompile Include="Rendering\OrbitCamera.cpp" />
     <ClCompile Include="Rendering\PlanetObject.cpp" />
     <ClCompile Include="Rendering\Scene.cpp" />
     <ClCompile Include="Rendering\SceneObject.cpp" />

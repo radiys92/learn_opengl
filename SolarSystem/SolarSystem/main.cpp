@@ -7,7 +7,6 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include "Rendering/Rendering.h"
 #include <map>
@@ -19,6 +18,7 @@ const char* lightPosName = "lightPos";
 const char* viewPosName = "viewPos";
 
 Scene scene;
+OrbitCamera* camera;
 
 void PrepareScene()
 {
@@ -29,19 +29,16 @@ void PrepareScene()
 void Draw()
 {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-	glm::vec3 viewPos(25.0f, 10.0, -5.0f);
-	glm::mat4 view = glm::lookAt(viewPos, glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
-	glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+	camera->Update();
 
 	std::map<const char*, glm::mat4> matrices;
-	matrices.insert_or_assign(viewMatrixName, view);
-	matrices.insert_or_assign(projectionMatrixName, projection);
+	matrices.insert_or_assign(viewMatrixName, camera->GetViewMatrix());
+	matrices.insert_or_assign(projectionMatrixName, camera->GetProjectionMatrix());
 
 	std::map<const char*, glm::vec3> vectors;
 	vectors.insert_or_assign(lightColorName, scene.GetLightSource()->GetLightColor());
 	vectors.insert_or_assign(lightPosName, scene.GetLightSource()->GetTransform()->GetPosition());
-	vectors.insert_or_assign(viewPosName, viewPos);
+	vectors.insert_or_assign(viewPosName, camera->GetViewPosition());
 
 	scene.DrawScene(&matrices, &vectors);
 }
@@ -93,6 +90,7 @@ int main()
 	glDebugMessageCallback(MessageCallback, 0);
 
 	PrepareScene();
+	camera = new OrbitCamera(window, 25);
 
 	while (!glfwWindowShouldClose(window))
 	{

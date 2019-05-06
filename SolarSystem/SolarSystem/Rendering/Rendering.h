@@ -5,6 +5,7 @@
 #include <glm/vec3.hpp>
 #include <glm/mat4x2.hpp>
 #include <map>
+#include <GLFW/glfw3.h>
 
 typedef struct
 {
@@ -202,4 +203,35 @@ private:
 	SceneNode rootNode = SceneNode();
 	SunObject* sun;
 	EarthPlanetObject* planetBuffer;
+};
+
+class OrbitCamera
+{
+public:
+	OrbitCamera(GLFWwindow* window, GLfloat radius);
+
+	void Update();
+	glm::mat4 GetViewMatrix();
+	glm::mat4 GetProjectionMatrix();
+	glm::vec3 GetViewPosition();
+
+private:
+	glm::vec3 position;
+	glm::vec3 targetPos = glm::vec3(0, 0, 0);
+	glm::vec3 up = glm::vec3(0, 1, 0);
+	GLfloat fow = 45.0f;
+	GLfloat nearPlane = 0.1f;
+	GLfloat farPlane = 100.0f;
+	GLfloat screenAspect;
+	GLfloat radius;
+	glm::vec2 rotation = glm::vec2(0, 235);
+
+	GLfloat deltaTime = 0.0f;
+	GLfloat lastFrame = 0.0f;
+
+	void CalculatePosition();
+
+	bool keys[1024];
+	static OrbitCamera* instance;
+	static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 };
