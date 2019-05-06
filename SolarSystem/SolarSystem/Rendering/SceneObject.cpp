@@ -1,4 +1,8 @@
 ﻿#include "Rendering.h"
+#include <map>
+#include <glm/gtc/type_ptr.hpp>
+
+const char* modelMatrixName = "model";
 
 Transform* SceneObject::GetTransform()
 {
@@ -26,18 +30,6 @@ Mesh* SceneObject::GetMesh()
 	return mesh;
 }
 
-void SceneObject::SetViewMatrix(glm::mat4 view)
-{
-	material->GetShader()->Use();
-	material->SetMatrix("view", view);
-}
-
-void SceneObject::SetProjectionMatrix(glm::mat4 projection)
-{
-	material->GetShader()->Use();
-	material->SetMatrix("projection", projection);
-}
-
 void SceneObject::SetVector(const char* uniformName, GLfloat x, GLfloat y)
 {
 	material->GetShader()->Use();
@@ -50,11 +42,26 @@ void SceneObject::SetVector(const char* uniformName, GLfloat x, GLfloat y, GLflo
 	glUniform3f(glGetUniformLocation(material->GetShader()->GetProgramId(), uniformName), x, y, z);
 }
 
-
-void SceneObject::Draw()
+void SceneObject::Draw(std::map<const char*, glm::mat4>* matrices, std::map<const char*, glm::vec3>* vectors)
 {
 	material->Use();
-	material->SetMatrix("model", transfom.GetModelMatrix());
+
+	GLuint uniformModelLocation = glGetUniformLocation(material->GetShader()->GetProgramId(), modelMatrixName);
+	glUniformMatrix4fv(uniformModelLocation, 1, GL_FALSE, glm::value_ptr(transfom.GetModelMatrix()));
+
+	for (std::map<const char*, glm::mat4>::iterator matrix = matrices->begin(); matrix != matrices->end(); ++matrix)
+	{
+		GLint pos = glGetUniformLocation(material->GetShader()->GetProgramId(), matrix->first);
+		if (pos != -1)
+			glUniformMatrix4fv(pos, 1, GL_FALSE, glm::value_ptr(matrix->second));
+	}
+	for (std::map<const char*, glm::vec3>::iterator vector = vectors->begin(); vector != vectors->end(); ++vector)
+	{
+		GLint pos = glGetUniformLocation(material->GetShader()->GetProgramId(), vector->first);
+		if (pos != -1)
+			glUniform3f(pos, vector->second.x, vector->second.y, vector->second.z);
+	}
+
 	mesh->BindVertexArray();
 	glDrawElements(GL_TRIANGLES, mesh->GetIndicesCount(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);

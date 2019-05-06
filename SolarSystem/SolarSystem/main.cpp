@@ -10,86 +10,40 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Rendering/Rendering.h"
-#include <ctime>
+#include <map>
 
-std::vector<SceneObject*> objects;
-SunObject* Sun;
+const char* viewMatrixName = "view";
+const char* projectionMatrixName = "projection";
+const char* lightColorName = "lightColor";
+const char* lightPosName = "lightPos";
+const char* viewPosName = "viewPos";
+
+Scene scene;
 
 void PrepareScene()
 {
-	time_t timeVal;
-	srand(static_cast<unsigned>(time(&timeVal)));
-
-	glm::vec3 sunPos(0.0f, 0.0f, 0.0f);
-	int planetsCount = 5;
-
-	for (int i = 0; i < planetsCount; i++)
-	{
-		GLfloat radius = i * 2 + 4;
-		GLfloat angle = (rand() % 1000) / 1000.0f * glm::pi<GLfloat>() * 2;
-		GLfloat x = sin(angle) * radius;
-		GLfloat z = cos(angle) * radius;
-
-		EarthPlanetObject* planet;
-		if (objects.size() > 0)
-			planet = new EarthPlanetObject(objects[0]->GetMesh(), objects[0]->GetMaterial());
-		else
-			planet = new EarthPlanetObject();
-		Transform *t = planet->GetTransform();
-		glm::vec3 planetRotation(25, 0, 0);
-		t->SetPosition(glm::vec3(x, 0, z));
-		t->SetRotation(planetRotation);
-		t->SetScale(glm::vec3(0.7f, 0.7f, 0.7f));
-		objects.push_back(planet);
-	}
-
-	for (int i = 0; i < planetsCount; i++)
-	{
-		EarthPlanetObject* earth = new EarthPlanetObject(objects[0]->GetMesh(), objects[0]->GetMaterial());
-		Transform *t = earth->GetTransform();
-		t->SetPosition(glm::vec3(1.5f, 0, 0));
-		t->SetRotation(glm::vec3(25, 0, 0));
-		t->SetScale(glm::vec3(0.3f, 0.3f, 0.3f));
-		t->SetParent(objects[i]->GetTransform());
-		objects.push_back(earth);
-	}
-
-	SunObject* sun = new SunObject(objects[0]->GetMesh());
-	Transform* t = sun->GetTransform();
-	t->SetScale(glm::vec3(1.5f, 1.5f, 1.5f));
-
-	Sun = sun;
-	glm::vec3 color = sun->GetLightColor();
-	for (SceneObject* object : objects)
-	{
-		object->SetVector("lightColor", color.r, color.g, color.b);
-	}
-
 	glEnable(GL_DEPTH_TEST);
+	scene.FillScene();
 }
 
 void Draw()
 {
-
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	glm::vec3 viewPos(0.0f, 40.0, -5.0f);
+	glm::vec3 viewPos(25.0f, 10.0, -5.0f);
 	glm::mat4 view = glm::lookAt(viewPos, glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
 	glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
-	Sun->SetViewMatrix(view);
-	Sun->SetProjectionMatrix(projection);
-	Sun->Draw();
+	std::map<const char*, glm::mat4> matrices;
+	matrices.insert_or_assign(viewMatrixName, view);
+	matrices.insert_or_assign(projectionMatrixName, projection);
 
-	glm::vec3 lightPos = Sun->GetTransform()->GetPosition();
-	for (SceneObject* object : objects)
-	{
-		object->SetViewMatrix(view);
-		object->SetProjectionMatrix(projection);
-		object->SetVector("lightPos", lightPos.x, lightPos.y, lightPos.z);
-		object->SetVector("viewPos", viewPos.x, viewPos.y, viewPos.z);
-		object->Draw();
-	}
+	std::map<const char*, glm::vec3> vectors;
+	vectors.insert_or_assign(lightColorName, scene.GetLightSource()->GetLightColor());
+	vectors.insert_or_assign(lightPosName, scene.GetLightSource()->GetTransform()->GetPosition());
+	vectors.insert_or_assign(viewPosName, viewPos);
+
+	scene.DrawScene(&matrices, &vectors);
 }
 
 void GLAPIENTRY

@@ -122,6 +122,7 @@
     <ClCompile Include="Rendering\Material.cpp" />
     <ClCompile Include="Rendering\Mesh.cpp" />
     <ClCompile Include="Rendering\PlanetObject.cpp" />
+    <ClCompile Include="Rendering\Scene.cpp" />
     <ClCompile Include="Rendering\SceneObject.cpp" />
     <ClCompile Include="Rendering\Shader.cpp" />
     <ClCompile Include="Rendering\Texture2D.cpp" />

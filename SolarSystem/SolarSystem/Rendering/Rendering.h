@@ -4,6 +4,7 @@
 #include <vector>
 #include <glm/vec3.hpp>
 #include <glm/mat4x2.hpp>
+#include <map>
 
 typedef struct
 {
@@ -113,12 +114,10 @@ public:
 	void SetMesh(Mesh* mesh);
 	Mesh* GetMesh();
 
-	void SetViewMatrix(glm::mat4 view);
-	void SetProjectionMatrix(glm::mat4 projection);
 	void SetVector(const char* uniformName, GLfloat x, GLfloat y);
 	void SetVector(const char* uniformName, GLfloat x, GLfloat y, GLfloat z);
 
-	virtual void Draw();
+	virtual void Draw(std::map<const char*, glm::mat4>* matrices, std::map<const char*, glm::vec3>* vectors);
 	Material* GetMaterial();
 private:
 	Transform transfom;
@@ -171,5 +170,36 @@ public:
 		return mat;
 	}
 
-	void Draw() override;
+	virtual void Draw(std::map<const char*, glm::mat4>* matrices, std::map<const char*, glm::vec3>* vectors) override;
+};
+
+class SceneNode
+{
+public:
+	SceneNode();
+	SceneNode(SceneNode* parent, SceneObject* object);
+
+	std::vector<SceneNode*> GetChildrens();
+	SceneNode* AddChild(SceneObject* object);
+
+	void Draw(std::map<const char*, glm::mat4>* matrices, std::map<const char*, glm::vec3>* vectors);
+
+private:
+	std::vector<SceneNode*> childrens;
+	SceneNode* parent;
+	SceneObject* object;
+};
+
+class Scene
+{
+public:
+	void SetVectorForDefaultPlanet(const char* uniformName, float x, float y, float z);
+	void FillScene();
+	SunObject* GetLightSource();
+	void DrawScene(std::map<const char*, glm::mat4>* matrices, std::map<const char*, glm::vec3>* vectors);
+
+private:
+	SceneNode rootNode = SceneNode();
+	SunObject* sun;
+	EarthPlanetObject* planetBuffer;
 };

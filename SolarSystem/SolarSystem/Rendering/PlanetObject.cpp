@@ -65,10 +65,10 @@ Mesh* SphereSceneObject::GenerateIdentitySphere(int segments = 10)
 	return sphere;
 }
 
-void EarthPlanetObject::Draw()
+void EarthPlanetObject::Draw(std::map<const char*, glm::mat4>* matrices, std::map<const char*, glm::vec3>* vectors)
 {
 	this->SetVector("cloudsShift", (GLfloat)glfwGetTime() / -150.0f, 0);
-	SceneObject::Draw();
+	SceneObject::Draw(matrices, vectors);
 }
 
 glm::vec3 SunObject::GetLightColor()
