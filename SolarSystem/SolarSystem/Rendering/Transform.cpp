@@ -46,5 +46,23 @@ glm::mat4 Transform::GetModelMatrix()
 	model = glm::rotate(model, glm::radians(rotation.y), up);
 	model = glm::rotate(model, glm::radians(rotation.z), forward);
 	model = glm::scale(model, scale);
+
+	Transform* p = parent;
+	while (p != nullptr)
+	{
+		model = p->GetModelMatrix() * model;
+		p = p->GetParent();
+	}
+
 	return model;
+}
+
+Transform* Transform::GetParent()
+{
+	return parent;
+}
+
+void Transform::SetParent(Transform* parent)
+{
+	this->parent = parent;
 }
