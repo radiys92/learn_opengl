@@ -1,5 +1,9 @@
 ﻿#include "Rendering.h"
 #include <GLFW/glfw3.h>
+#include <glm/vec3.hpp>
+#include <glm/mat4x2.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <iostream>
 
 Mesh* SphereSceneObject::GenerateIdentitySphere(int segments = 10)
 {
@@ -65,10 +69,35 @@ Mesh* SphereSceneObject::GenerateIdentitySphere(int segments = 10)
 	return sphere;
 }
 
+glm::quat CreateQuatFromTwoVectors(glm::vec3 U, glm::vec3 V)
+{
+	glm::vec3 w = glm::cross(U, V);
+	glm::quat q = glm::quat(glm::dot(U, V), w.x, w.y, w.z);
+	q.w += sqrt(q.x*q.x + q.w*q.w + q.y*q.y + q.z*q.z);
+	return glm::normalize(q);
+}
+
+void EarthPlanetObject::SetupOrbitAngle(glm::vec3 orbitAngle, glm::vec3 rotationSped)
+{
+	GetTransform()->SetRotation(orbitAngle);
+	orbitRotation = orbitAngle;
+	orbitRotationSpeed = rotationSped;
+}
+
+void EarthPlanetObject::SetParentRotationSpeed(GLfloat speed)
+{
+	this->parentRotationSpeed = speed;
+}
+
 void EarthPlanetObject::Draw(std::map<const char*, glm::mat4>* matrices, std::map<const char*, glm::vec3>* vectors)
 {
-	this->SetVector("cloudsShift", (GLfloat)glfwGetTime() / -150.0f, 0);
 	SceneObject::Draw(matrices, vectors);
+
+	Transform* t = GetTransform();
+	t->SetRotation(t->GetRotation() + orbitRotationSpeed);
+	t->SetPosition(glm::rotate(glm::mat4(1.0f), glm::radians(parentRotationSpeed * DeltaTimeHolder::GetInstance().deltaTime), glm::vec3(0, 1, 0)) *glm::vec4(t->GetPosition(),1));
+
+	this->SetVector("cloudsShift", (GLfloat)glfwGetTime() / cloudsSpeed, 0);
 }
 
 glm::vec3 SunObject::GetLightColor()

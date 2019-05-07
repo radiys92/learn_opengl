@@ -174,6 +174,14 @@ public:
 	}
 
 	virtual void Draw(std::map<const char*, glm::mat4>* matrices, std::map<const char*, glm::vec3>* vectors) override;
+	void SetupOrbitAngle(glm::vec3 orbitAngle, glm::vec3 rotationSped);
+	void SetParentRotationSpeed(GLfloat speed);
+
+private:
+	glm::vec3 orbitRotation;
+	GLfloat cloudsSpeed = -150.0f;
+	glm::vec3 orbitRotationSpeed;
+	GLfloat parentRotationSpeed = 10;
 };
 
 class SceneNode
@@ -228,13 +236,30 @@ private:
 	GLfloat radius;
 	glm::vec2 rotation = glm::vec2(0, 235);
 
-	GLfloat deltaTime = 0.0f;
-	GLfloat lastFrame = 0.0f;
-
 	void CalculatePosition();
 	glm::vec3 GetRight();
 
 	bool keys[GLFW_KEY_LAST];
 	static OrbitCamera* instance;
 	static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+};
+
+class DeltaTimeHolder
+{
+public:
+	GLfloat deltaTime;
+	GLfloat lastFrame;
+
+	static DeltaTimeHolder& GetInstance()
+	{
+		static DeltaTimeHolder instance;
+		return instance;
+	}
+
+	void Update()
+	{
+		GLfloat currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+	}
 };

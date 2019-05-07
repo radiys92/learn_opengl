@@ -62,19 +62,19 @@ void Scene::FillScene()
 		GLfloat x = sin(angle) * radius;
 		GLfloat z = cos(angle) * radius;
 
-		EarthPlanetObject* planet;
-		planet = new EarthPlanetObject(planetBuffer->GetMesh(), planetBuffer->GetMaterial());
+		EarthPlanetObject* planet = new EarthPlanetObject(planetBuffer->GetMesh(), planetBuffer->GetMaterial());
+		planet->SetupOrbitAngle(glm::vec3(0, 0, 0), glm::vec3(0,0.1,0));
+		planet->SetParentRotationSpeed((planetsCount - i + 1) * 20);
 		Transform *t = planet->GetTransform();
-		glm::vec3 planetRotation(25, 0, 0);
 		t->SetPosition(glm::vec3(x, 0, z));
-		t->SetRotation(planetRotation);
 		t->SetScale(glm::vec3(0.7f, 0.7f, 0.7f));
 		SceneNode* planetNode = rootNode.AddChild(planet);
 
 		EarthPlanetObject* satellite = new EarthPlanetObject(planetBuffer->GetMesh(), planetBuffer->GetMaterial());
+		satellite->SetupOrbitAngle(glm::vec3(0, 0, 0), glm::vec3(0, 0.1, 0));
+		satellite->SetParentRotationSpeed((planetsCount - i + 1) * 20);
 		t = satellite->GetTransform();
 		t->SetPosition(glm::vec3(1.5f, 0, 0));
-		t->SetRotation(glm::vec3(25, 0, 0));
 		t->SetScale(glm::vec3(0.3f, 0.3f, 0.3f));
 		planetNode->AddChild(satellite);
 	}

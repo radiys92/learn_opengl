@@ -67,11 +67,9 @@ glm::vec3 OrbitCamera::GetRight()
 
 void OrbitCamera::Update()
 {
-	GLfloat currentFrame = glfwGetTime();
-	deltaTime = currentFrame - lastFrame;
-	lastFrame = currentFrame;
+	DeltaTimeHolder::GetInstance().Update();
 
-	GLfloat cameraSpeed = 35.0f * deltaTime;
+	GLfloat cameraSpeed = 35.0f * DeltaTimeHolder::GetInstance().deltaTime;
 	// cam pos
 	if (keys[GLFW_KEY_W])
 		rotation.y = glm::clamp(rotation.y + cameraSpeed, 180.0f, 270.0f);
