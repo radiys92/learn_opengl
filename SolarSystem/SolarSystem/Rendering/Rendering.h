@@ -6,6 +6,7 @@
 #include <glm/mat4x2.hpp>
 #include <map>
 #include <GLFW/glfw3.h>
+#include <SOIL.h>
 
 typedef struct
 {
@@ -40,7 +41,7 @@ class Texture2D
 {
 public:
 	Texture2D(const GLchar* uniformName, int textureIndex);
-	void LoadFrom(const GLchar* texturePath);
+	void LoadFrom(const GLchar* texturePath, int soilLoadMode);
 	void BindTo(GLuint program);
 	void Unbind();
 
@@ -65,7 +66,7 @@ class Material
 {
 public:
 	void LoadShader(const GLchar* vertexPath, const GLchar* fragmentPath);
-	void LoadTexture2D(const GLchar* texturePath, const GLchar* uniformName);
+	void LoadTexture2D(const GLchar* texturePath, const GLchar* uniformName, int soilLoadMode);
 
 	void Use();
 	void Unbind();
@@ -148,7 +149,7 @@ public:
 	{
 		Material* mat = new Material();
 		mat->LoadShader("Resources/default_vertex.shader", "Resources/default_fragment.shader");
-		mat->LoadTexture2D("Resources/Sun_Alb.png", "mainTex");
+		mat->LoadTexture2D("Resources/Sun_Alb.png", "mainTex", SOIL_LOAD_RGB);
 		return mat;
 	}
 private:
@@ -165,9 +166,10 @@ public:
 	{
 		Material* mat = new Material();
 		mat->LoadShader("Resources/multimaps_vertex.shader", "Resources/multimaps_fragment.shader");
-		mat->LoadTexture2D("Resources/Earth_Alb.png", "mainTex");
-		mat->LoadTexture2D("Resources/Earth Clouds.png", "cloudsTex");
-		mat->LoadTexture2D("Resources/Earth Lights.png", "lightsTex");
+		mat->LoadTexture2D("Resources/Earth_Alb.png", "mainTex", SOIL_LOAD_RGB);
+		mat->LoadTexture2D("Resources/Earth Clouds.png", "cloudsTex", SOIL_LOAD_L);
+		mat->LoadTexture2D("Resources/Earth Lights.png", "lightsTex", SOIL_LOAD_RGB);
+		mat->LoadTexture2D("Resources/Earth Ocean.png", "specularTex", SOIL_LOAD_L);
 		return mat;
 	}
 
@@ -219,7 +221,7 @@ private:
 	glm::vec3 position;
 	glm::vec3 targetPos = glm::vec3(0, 0, 0);
 	glm::vec3 up = glm::vec3(0, 1, 0);
-	GLfloat fow = 45.0f;
+	GLfloat fov = 45.0f;
 	GLfloat nearPlane = 0.1f;
 	GLfloat farPlane = 100.0f;
 	GLfloat screenAspect;
@@ -230,8 +232,9 @@ private:
 	GLfloat lastFrame = 0.0f;
 
 	void CalculatePosition();
+	glm::vec3 GetRight();
 
-	bool keys[1024];
+	bool keys[GLFW_KEY_LAST];
 	static OrbitCamera* instance;
 	static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 };

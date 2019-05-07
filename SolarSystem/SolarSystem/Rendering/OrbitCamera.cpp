@@ -18,7 +18,7 @@ OrbitCamera::OrbitCamera(GLFWwindow* window, GLfloat radius)
 	this->radius = radius;
 	CalculatePosition();
 
-	for (int i = 0; i < 1024; i++)
+	for (int i = 0; i < GLFW_KEY_LAST; i++)
 		keys[i] = false;
 	glfwSetKeyCallback(window, key_callback);
 }
@@ -27,7 +27,7 @@ void OrbitCamera::key_callback(GLFWwindow* window, int key, int scancode, int ac
 {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
-	if (key >= 0 && key < 1024)
+	if (key >= 0 && key < GLFW_KEY_LAST)
 	{
 		if (action == GLFW_PRESS)
 			instance->keys[key] = true;
@@ -56,8 +56,14 @@ glm::mat4 OrbitCamera::GetViewMatrix()
 
 glm::mat4 OrbitCamera::GetProjectionMatrix()
 {
-	return glm::perspective(glm::radians(fow), screenAspect, nearPlane, farPlane);
+	return glm::perspective(glm::radians(fov), screenAspect, nearPlane, farPlane);
 }
+
+glm::vec3 OrbitCamera::GetRight()
+{
+	return glm::normalize(glm::cross(targetPos - position, up));
+}
+
 
 void OrbitCamera::Update()
 {
@@ -66,6 +72,7 @@ void OrbitCamera::Update()
 	lastFrame = currentFrame;
 
 	GLfloat cameraSpeed = 35.0f * deltaTime;
+	// cam pos
 	if (keys[GLFW_KEY_W])
 		rotation.y = glm::clamp(rotation.y + cameraSpeed, 180.0f, 270.0f);
 	if (keys[GLFW_KEY_S])
@@ -74,9 +81,18 @@ void OrbitCamera::Update()
 		rotation.x -= cameraSpeed;
 	if (keys[GLFW_KEY_D])
 		rotation.x += cameraSpeed;
+
+	// fov
 	if (keys[GLFW_KEY_Q])
-		fow = glm::clamp(fow - cameraSpeed, 10.0f, 90.0f);
+		fov = glm::clamp(fov - cameraSpeed, 10.0f, 90.0f);
 	if (keys[GLFW_KEY_E])
-		fow = glm::clamp(fow + cameraSpeed, 10.0f, 90.0f);
+		fov = glm::clamp(fov + cameraSpeed, 10.0f, 90.0f);
+
+	// streif
+	if (keys[GLFW_KEY_LEFT])
+		targetPos = targetPos - GetRight() * cameraSpeed / 2.0f;
+	if (keys[GLFW_KEY_RIGHT])
+		targetPos = targetPos + GetRight() * cameraSpeed / 2.0f;
+
 	CalculatePosition();
 }

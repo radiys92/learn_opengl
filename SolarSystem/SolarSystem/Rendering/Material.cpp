@@ -6,10 +6,10 @@ void Material::LoadShader(const GLchar* vertexPath, const GLchar* fragmentPath)
 	shader = new Shader(vertexPath, fragmentPath);
 }
 
-void Material::LoadTexture2D(const GLchar* texturePath, const GLchar* uniformName)
+void Material::LoadTexture2D(const GLchar* texturePath, const GLchar* uniformName, int soilLoadMode)
 {
 	Texture2D tex = Texture2D(uniformName, textures.size());
-	tex.LoadFrom(texturePath);
+	tex.LoadFrom(texturePath, soilLoadMode);
 	textures.insert(textures.end(), tex);
 }
 

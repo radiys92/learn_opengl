@@ -8,18 +8,22 @@ Texture2D::Texture2D(const GLchar* uniformName, int textureIndex)
 	this->textureIndex = textureIndex;
 }
 
-void Texture2D::LoadFrom(const GLchar* texturePath)
+void Texture2D::LoadFrom(const GLchar* texturePath, int soilLoadMode)
 {
 	glGenTextures(1, &textureId);
 	glBindTexture(GL_TEXTURE_2D, textureId);
-
+	
 	int width, height, c;
-	unsigned char* data = SOIL_load_image(texturePath, &width, &height, &c, SOIL_LOAD_RGB);
+	unsigned char* data = SOIL_load_image(texturePath, &width, &height, &c, soilLoadMode);
 	if (data == 0)
 	{
 		std::cout << "TEXTURE2D::LOAD_ERROR" << std::endl << SOIL_last_result() << std::endl;
 	}
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	
+	GLenum glMode = GL_RGB;
+	if (soilLoadMode == SOIL_LOAD_L)
+		glMode = GL_RED;
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, glMode, GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	SOIL_free_image_data(data);
 	glBindTexture(GL_TEXTURE_2D, 0);

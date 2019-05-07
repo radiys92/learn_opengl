@@ -9,6 +9,7 @@ out vec4 color;
 uniform sampler2D mainTex;
 uniform sampler2D cloudsTex;
 uniform sampler2D lightsTex;
+uniform sampler2D specularTex;
 
 uniform vec3 lightColor;
 uniform vec3 lightPos;
@@ -27,15 +28,17 @@ void main()
     vec3 diffuse = diff * lightColor;
     
     // Specular
+    float specularMap = texture(specularTex, TexCoord).r;
     float specularStrength = 0.5f;
     vec3 viewDir = normalize(viewPos - FragPos);
     vec3 reflectDir = reflect(-lightDir, norm);  
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-    vec3 specular = specularStrength * spec * lightColor;
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 8);
+    vec3 specular = (spec * lightColor);
+    specular = specular * specularStrength + specular * (1 - specularMap) * 2;
 
 
     vec3 self = texture(mainTex, TexCoord).rgb;
-    self += texture(cloudsTex, CloudsTexCoord).rgb / 2;
+    self += texture(cloudsTex, CloudsTexCoord).r / 2;
 
     vec3 lights = texture(lightsTex, TexCoord).rgb;
 
